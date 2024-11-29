@@ -65,6 +65,17 @@ class Model(QSqlQueryModel):
         update_query.exec_()
         self.refresh()
 
+    def delete(self, id_teacher):
+        del_query = QSqlQuery()
+        DELETE = '''
+            delete from teachers
+            where id_teacher = :id_teacher;
+        '''
+        del_query.prepare(DELETE)
+        del_query.bindValue(':id_teacher', id_teacher)
+        del_query.exec_()
+        self.refresh()
+
 class View(QTableView):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -91,7 +102,11 @@ class View(QTableView):
 
     @pyqtSlot()
     def delete(self):
-        QMessageBox.information(self, 'Учитель', 'Удаление')
+        answer = QMessageBox.question(self, 'Учитель', 'Вы уверены, что хотите удалить?')
+        if answer == QMessageBox.Yes:
+            row = self.currentIndex().row()
+            id_teacher = self.model().record(row).value(0)
+            self.model().delete(id_teacher)
 
 class Dialog(QDialog):
     def __init__(self, parent=None):
