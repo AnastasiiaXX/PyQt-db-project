@@ -19,6 +19,3 @@ class Application(QApplication):
             print('Connected to database', file=sys.stderr)
         else:
             print('Connection failed', file=sys.stderr)
-            print(f"Error: {db.lastError().text()}", file=sys.stderr)
-
-

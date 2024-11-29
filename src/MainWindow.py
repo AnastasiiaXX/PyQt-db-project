@@ -10,11 +10,16 @@ class MainWindow(QMainWindow):
 
         main_menu = MainMenu(parent=self)
         self.setMenuBar(main_menu)
-        main_menu.about.triggered.connect(self.about)
-        main_menu.about_qt.triggered.connect(self.about_qt)
 
         w = QWidget(parent=self)
         view = View(parent=w)
+        main_menu.about.triggered.connect(self.about)
+        main_menu.about_qt.triggered.connect(self.about_qt)
+        main_menu.teacher_add.triggered.connect(view.add)
+        main_menu.teacher_update.triggered.connect(view.update)
+        main_menu.teacher_delete.triggered.connect(view.delete)
+
+
 
         layout = QVBoxLayout()
         layout.addWidget(view)
