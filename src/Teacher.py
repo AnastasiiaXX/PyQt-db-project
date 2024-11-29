@@ -1,7 +1,10 @@
-from PyQt5.QtCore import pyqtSlot
+from PyQt5.QtCore import pyqtSlot, Qt, fixed
 from PyQt5.QtSql import QSqlQueryModel, QSqlQuery
-from PyQt5.QtWidgets import (QPushButton, QTextEdit, QTableView, QMessageBox, QDialog, QVBoxLayout,
-                                              QLabel, QHBoxLayout, QLineEdit)
+from PyQt5.QtWidgets import (
+    QPushButton, QTextEdit, QTableView, QMessageBox,
+    QDialog, QVBoxLayout,
+    QLabel, QHBoxLayout, QLineEdit
+)
 
 class Model(QSqlQueryModel):
     def __init__(self, parent=None):
@@ -83,6 +86,19 @@ class View(QTableView):
         model = Model(parent=self)
         self.setModel(model)
 
+        model.setHeaderData(1, Qt.Horizontal, 'ФИО')
+        model.setHeaderData(2, Qt.Horizontal, 'Телефон')
+        model.setHeaderData(3, Qt.Horizontal, 'Эл. почта')
+        model.setHeaderData(4, Qt.Horizontal, 'Примечание')
+        self.setSelectionBehavior(self.SelectRows)
+        self.setSelectionMode(self.SingleSelection)
+        self.hideColumn(0)
+        self.setWordWrap(False)
+        vh = self.verticalHeader()
+        vh.setSectionResizeMode(vh.Fixed)
+        hh = self.horizontalHeader()
+        hh.setSectionResizeMode(hh.ResizeToContents)
+        hh.setSectionResizeMode(4, hh.Stretch)
     @pyqtSlot()
     def add(self):
         dialog = Dialog(parent=self)

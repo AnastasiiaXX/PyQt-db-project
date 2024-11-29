@@ -4,8 +4,9 @@ class MainMenu(QMenuBar):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        help_menu = self.addMenu('Справка')
         teacher_menu = self.addMenu('Учитель')
+        help_menu = self.addMenu('Справка')
+
 
         self.__about = help_menu.addAction('О программе...')
         self.__about_qt = help_menu.addAction('О библиотеке Qt...')
