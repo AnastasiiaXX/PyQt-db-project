@@ -38,8 +38,13 @@ class Model(QSqlQueryModel):
         '''
         sel_query.prepare(SELECT_ONE)
         sel_query.bindValue(':id_teacher', id_teacher)
-        sel_query.exec()
-        if sel_query
+        sel_query.exec_()
+        if sel_query.isActive():
+            sel_query.first()
+            return (sel_query.value('fio'), sel_query.value('phone'),
+                    sel_query.value('email'), sel_query.value('comnt'))
+        self.refresh()
+        return '', '', '', ''
 
     def update(self, fio, phone, email, comnt, id_teacher):
         update_query = QSqlQuery()
@@ -79,7 +84,9 @@ class View(QTableView):
         row = self.currentIndex().row()
         id_teacher = self.model().record(row).value(0)
         dialog.fio, dialog.phone, dialog.email, dialog.comnt = self.model().select_one(id_teacher)
-        if dialog.exec():
+        if not dialog.fio:
+            QMessageBox.information(self, 'Учитель', 'Учитель не был найден в базе.\nВозможно, запись была удалена.')
+        elif dialog.exec():
             self.model().update(dialog.fio, dialog.phone, dialog.email, dialog.comnt, id_teacher)
 
     @pyqtSlot()

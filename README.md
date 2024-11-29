@@ -24,23 +24,23 @@
    git clone https://github.com/AnastasiiaXX/PyQt-db-project.git
    
     ```
-2. Создайте виртуальное окружение и установите необходимые библиотеки:
+2. Создайте виртуальное окружение и установите необходимые библиотеки (из requirements.txt):
 
    ```bash
    python -m venv venv
    ```
 3. Для активации виртуального окружения:
 
+    Для Linux/Mac:
+    ```bash
+    source venv/bin/activate
+    ```
+  
+    Для Windows:
 
-   Для Linux/Mac:
-   ```bash
-  source venv/bin/activate
-  ```
-Для Windows:
-
-```bash
-.\venv\Scripts\activate
-  ```
+    ```bash
+    .\venv\Scripts\activate
+    ```
 4. Настройка подключения к базе данных PostgreSQL
 
     В файле `settings.py` нужно настроить следующие параметры подключения:
@@ -59,5 +59,3 @@
     ```bash
     python __main__.py
     ```
-
-
