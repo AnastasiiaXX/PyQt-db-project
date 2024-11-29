@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QMessageBox
 from PyQt5.QtCore import pyqtSlot
-from MainMenu import MainMenu
+from src.MainMenu import MainMenu
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -16,7 +16,7 @@ class MainWindow(QMainWindow):
         title = 'Управление заданиями для учащихся'
         text = (
             'Программа для управления задачами\n' +
-            'и заданиями для учащихся щколы'
+            'и заданиями для учащихся школы'
         )
         QMessageBox.about(self, title, text)
 
