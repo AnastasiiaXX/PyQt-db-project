@@ -1,7 +1,7 @@
 from PyQt5.QtWidgets import QMainWindow, QMessageBox, QWidget, QVBoxLayout, QPushButton, QHBoxLayout
 from PyQt5.QtCore import pyqtSlot
 from MainMenu import MainMenu
-from Teacher import View
+from TeacherQueryModel import View
 
 
 class MainWindow(QMainWindow):

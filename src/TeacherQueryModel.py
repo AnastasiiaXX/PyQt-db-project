@@ -1,16 +1,15 @@
 from PyQt5.QtCore import pyqtSlot, Qt, fixed
-from PyQt5.QtSql import QSqlTableModel
+from PyQt5.QtSql import QSqlQueryModel, QSqlQuery
 from PyQt5.QtWidgets import (
-    QTableView, QMessageBox, QDialog,
-    QLabel, QPushButton, QTextEdit, QLineEdit,
-    QVBoxLayout, QHBoxLayout,
+    QPushButton, QTextEdit, QTableView, QMessageBox,
+    QDialog, QVBoxLayout,
+    QLabel, QHBoxLayout, QLineEdit
 )
 
-class Model(QSqlTableModel):
+class Model(QSqlQueryModel):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setTable('teachers')
-        self.select()
+        self.refresh()
 
     def refresh(self):
         sql = '''
@@ -19,17 +18,69 @@ class Model(QSqlTableModel):
             '''
         self.setQuery(sql)
 
-    def add_rec(self, rec, fio, phone, email, comnt):
-        rec.setValue('id_teacher', self.rowCount())
-        rec.setValue('fio', fio)
-        rec.setValue('phone', phone)
-        rec.setValue('email', email)
-        rec.setValue('comnt', comnt)
-        ok = self.insertRecord(-1, rec)
-        self.select()
+    def add(self, fio, phone, email, comnt):
+        add_query = QSqlQuery()
+        INSERT = '''
+                    insert into teachers (fio, phone, email, comnt)
+                    values ( :fio, :phone, :email, :comnt );
+                '''
+        add_query.prepare(INSERT)
+        add_query.bindValue(':fio', fio)
+        add_query.bindValue(':phone', phone[:10])
+        add_query.bindValue(':email', email)
+        add_query.bindValue(':comnt', comnt)
+        add_query.exec_()
+        self.refresh()
+
+    def select_one(self, id_teacher):
+        sel_query = QSqlQuery()
+        SELECT_ONE = '''
+            select fio, phone, email, comnt
+            from teachers 
+            where id_teacher = :id_teacher;
+        '''
+        sel_query.prepare(SELECT_ONE)
+        sel_query.bindValue(':id_teacher', id_teacher)
+        sel_query.exec_()
+        if sel_query.isActive():
+            sel_query.first()
+            return (sel_query.value('fio'), sel_query.value('phone'),
+                    sel_query.value('email'), sel_query.value('comnt'))
+        self.refresh()
+        return '', '', '', ''
+
+    def update(self, fio, phone, email, comnt, id_teacher):
+        update_query = QSqlQuery()
+        UPDATE = '''
+            update teachers set
+                fio = :fio, 
+                phone = :phone,
+                email = :email,
+                comnt = :comnt
+            where id_teacher = :id_teacher ;
+        '''
+        update_query.prepare(UPDATE)
+        update_query.bindValue(':fio', fio)
+        update_query.bindValue(':phone', phone[:10])
+        update_query.bindValue(':email', email)
+        update_query.bindValue(':comnt', comnt)
+        update_query.bindValue(':id_teacher', id_teacher)
+        update_query.exec_()
+        self.refresh()
+
+    def delete(self, id_teacher):
+        del_query = QSqlQuery()
+        DELETE = '''
+            delete from teachers
+            where id_teacher = :id_teacher;
+        '''
+        del_query.prepare(DELETE)
+        del_query.bindValue(':id_teacher', id_teacher)
+        del_query.exec_()
+        self.refresh()
 
 class View(QTableView):
-    def __init__(self, conn, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent)
 
         model = Model(parent=self)
@@ -48,20 +99,30 @@ class View(QTableView):
         hh = self.horizontalHeader()
         hh.setSectionResizeMode(hh.ResizeToContents)
         hh.setSectionResizeMode(4, hh.Stretch)
-
     @pyqtSlot()
     def add(self):
         dialog = Dialog(parent=self)
         if dialog.exec():
-            self.model().add_rec(self.conn.record('teachers'),
-                                 dialog.fio, dialog.phone, dialog.email, dialog.comnt)
+            self.model().add(dialog.fio, dialog.phone, dialog.email, dialog.comnt)
+
+    @pyqtSlot()
+    def update(self):
+        dialog = Dialog(parent=self)
+        row = self.currentIndex().row()
+        id_teacher = self.model().record(row).value(0)
+        dialog.fio, dialog.phone, dialog.email, dialog.comnt = self.model().select_one(id_teacher)
+        if not dialog.fio:
+            QMessageBox.information(self, 'Учитель', 'Учитель не был найден в базе.\nВозможно, запись была удалена.')
+        elif dialog.exec():
+            self.model().update(dialog.fio, dialog.phone, dialog.email, dialog.comnt, id_teacher)
 
     @pyqtSlot()
     def delete(self):
         answer = QMessageBox.question(self, 'Учитель', 'Вы уверены, что хотите удалить?')
         if answer == QMessageBox.Yes:
-            self.model().removeRow(self.currentIndex().row())
-            self.model().select()
+            row = self.currentIndex().row()
+            id_teacher = self.model().record(row).value(0)
+            self.model().delete(id_teacher)
 
 class Dialog(QDialog):
     def __init__(self, parent=None):
@@ -114,12 +175,17 @@ class Dialog(QDialog):
             return
         self.accept()
 
+
     @property
     def fio(self):
         result = self.__fio_edit.text().strip()
         if result == '':
             return None
         return result
+
+    @fio.setter
+    def fio(self, value):
+        self.__fio_edit.setText(value)
 
     @property
     def phone(self):
@@ -128,6 +194,10 @@ class Dialog(QDialog):
             return None
         return result
 
+    @phone.setter
+    def phone(self, value):
+        self.__phone_edit.setText(value)
+
     @property
     def email(self):
         result = self.__email_edit.text().strip()
@@ -135,9 +205,17 @@ class Dialog(QDialog):
             return None
         return result
 
+    @email.setter
+    def email(self, value):
+        self.__email_edit.setText(value)
+
     @property
     def comnt(self):
         result = self.__comnt_edit.toPlainText().strip()
         if result == '':
             return None
         return result
+
+    @comnt.setter
+    def comnt(self, value):
+        self.__comnt_edit.setText(value)
